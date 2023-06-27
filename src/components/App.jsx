@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { useState, useEffect } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -11,75 +11,66 @@ import {Button} from './Button/Button';
 import css from './App.module.css';
 
 
-export class App extends Component {
-  state = {
-    searchData: '',
-    images: [],
-    page: 0,
-    largeImage: '',
-    showModal: false,
-    isLoading: false,
-    error: null,
-  };
+export const App = () => {
+  const [searchData, setSearchData] = useState ('');
+  const [images, setImages] = useState ([]);
+  const [page, setPage] = useState (0);
+  const [largeImage, setLargeImage] = useState ('');
+  const [showModal, setShowModal] = useState (false);
+  const [isLoading, setIsLoading] = useState (false);
+  const [error, setError] = useState ('');
+  
+useEffect (() => {
+  if (!searchData) return
 
-  componentDidUpdate(prevProps, prevState) {
-    const prevPage = prevState.page;
-    const prevSearchData = prevState.searchData;
-    const { searchData, page, images } = this.state;
-    if (prevPage !== page || prevSearchData !== searchData) {
-      try {
-        this.setState({ isLoading: true });
-        const response = fetchImagesWithQuery(searchData, page);
-        response.then(data => {
-          data.data.hits.length === 0
-            ? toast.error('Nothing found')
-            : data.data.hits.forEach(({ id, webformatURL, largeImageURL }) => {
-                !images.some(image => image.id === id) &&
-                  this.setState(({ images }) => ({
-                    images: [...images, { id, webformatURL, largeImageURL }],
-                  }));
-              });
-          this.setState({ isLoading: false });
-        });
-      } catch (error) {
-        this.setState({ error, isLoading: false });
-      } finally {
-      }
-    }
-  }
-
-  onSubmit = searchData => {
-    if (searchData.trim() === '') {
-      return toast.error('Enter the meaning for search');
-    } else if (searchData === this.state.searchData) {
-      return;
-    }
-    this.setState({
-      searchData: searchData,
-      page: 1,
-      images: [],
+  const getPhotos = async () => {
+    setIsLoading ( true );
+    try {
+    const response = fetchImagesWithQuery(searchData, page);
+    response.then(data => {
+      data.data.hits.length === 0
+        ? toast.error('Nothing found')
+        : data.data.hits.forEach(({ id, webformatURL, largeImageURL }) => {
+          console.log (images);
+            !images.some(image => image.id === id) &&
+              setImages (({ images }) => ({
+                images: [...images, { id, webformatURL, largeImageURL }],
+              }));
+          });
+      setIsLoading (false);
     });
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setIsLoading(false);
+    };
+  }
+  getPhotos();
+
+}, [searchData, page, images]);
+
+
+  const onSubmit = searchData => {
+    setSearchData (searchData);
+    setPage (1);
+    setImages ([]); 
+    setError (error);   
   };
 
-  nextPage = () => {
-    this.setState(({ page }) => ({ page: page + 1 }));
+  const nextPage = () => {
+    setPage(page + 1);
   };
 
-  openModal = index => {
-    this.setState(({ images }) => ({
-      showModal: true,
-      largeImage: images[index].largeImageURL,
-    }));
+  const openModal = ({index, images}) => {
+    setShowModal (true);
+    setLargeImage (images[index].largeImageURL);    
   };
 
-  toggleModal = () => {
-    this.setState(({ showModal }) => ({ showModal: !showModal }));
+  const toggleModal = () => {
+    setShowModal (!showModal);
   };
 
-  render() {
-    const { toggleModal, openModal, nextPage, onSubmit } = this;
-    const { images, isLoading, largeImage, showModal } = this.state;
-
+ 
     return (
       <div className={css.app}>
         <Searchbar onSubmit={onSubmit} />
@@ -93,10 +84,7 @@ export class App extends Component {
 
         {!isLoading && images.length > 0 && <Button nextPage={nextPage} />}
         <ToastContainer autoClose={2500} />
-        
-        
+                
       </div>
-    );
-  }
+    );  
 }
-
