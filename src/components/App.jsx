@@ -26,7 +26,7 @@ useEffect (() => {
   const getPhotos = async () => {
     setIsLoading ( true );
     try {
-    const response = fetchImagesWithQuery(searchData, page);
+    const response = await fetchImagesWithQuery(searchData, page);
     response.then(data => {
       data.data.hits.length === 0
         ? toast.error('Nothing found')
@@ -58,7 +58,7 @@ useEffect (() => {
   };
 
   const nextPage = () => {
-    setPage(page + 1);
+    setPage(prevState => prevState + 1);
   };
 
   const openModal = ({index, images}) => {
