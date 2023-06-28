@@ -20,7 +20,8 @@ export const App = () => {
   const [largeImage, setLargeImage] = useState ('');
   const [showModal, setShowModal] = useState (false);
   const [isLoading, setIsLoading] = useState (false);
-  const [error, setError] = useState ('null');
+  //eslint-disable-next-line
+  const [error, setError] = useState ('');
   
   useEffect(() => {
     if (!page) {
@@ -40,7 +41,6 @@ export const App = () => {
         setIsLoading(false);
       });
     } catch (error) {
-      console.log (error);
       setError(error);
       setIsLoading(false);
     } finally {setIsLoading(false)};
