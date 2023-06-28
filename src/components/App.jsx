@@ -20,50 +20,55 @@ export const App = () => {
   const [largeImage, setLargeImage] = useState ('');
   const [showModal, setShowModal] = useState (false);
   const [isLoading, setIsLoading] = useState (false);
-  const [error, setError] = useState ('');
+  const [error, setError] = useState ('null');
   
-useEffect (() => {
-  if (!searchData) return
+  useEffect(() => {
+    if (!page) {
+      return;
+    }
 
-  const getPhotos = async () => {
-    setIsLoading ( true );
     try {
-    const response = await fetchImagesWithQuery(searchData, page);
-    response.then(data => {
-      data.data.hits.length === 0
-        ? toast.error('Nothing found')
-        : data.data.hits.forEach(({ id, webformatURL, largeImageURL }) => {
-          console.log (images);
-            !images.some(image => image.id === id) &&
-              setImages (({ images }) => ({
-                images: [...images, { id, webformatURL, largeImageURL }],
-              }));
-          });
-      setIsLoading (false);
-    });
+      setIsLoading(true);
+      const response = fetchImagesWithQuery(searchData, page);
+      response.then(data => {
+        data.data.hits.length === 0
+          ? toast.error('Nothing found')
+          : data.data.hits.forEach(({ id, webformatURL, largeImageURL }) => {
+              !images.some(image => image.id === id) &&
+                setImages(i => [...i, { id, webformatURL, largeImageURL }]);
+            });
+        setIsLoading(false);
+      });
     } catch (error) {
-      setError(error.message);
-    } finally {
+      console.log (error);
+      setError(error);
       setIsLoading(false);
-    };
+    } finally {setIsLoading(false)};
+   
+  }, [images, page, searchData]);
+
+const onSubmit = searchData => {
+  setSearchData(searchData);
+  setPage(1);
+  setImages([]);
+}
+/*const onSubmit = newSearchData => {
+  console.log (newSearchData);
+  if (newSearchData.trim() === '') {
+    return toast.error('Enter the meaning for search');
+  } else if (newSearchData === searchData) {
+    return;
   }
-  getPhotos();
+  setSearchData(newSearchData);
+  setPage(1);
+  setImages([]);*/
 
-}, [searchData, page, images]);
-
-
-  const onSubmit = searchData => {
-    setSearchData (searchData);
-    setPage (1);
-    setImages ([]); 
-    setError (error);   
-  };
 
   const nextPage = () => {
     setPage(prevState => prevState + 1);
   };
 
-  const openModal = ({index, images}) => {
+  const openModal = index => {
     setShowModal (true);
     setLargeImage (images[index].largeImageURL);    
   };
@@ -72,8 +77,7 @@ useEffect (() => {
     setShowModal (!showModal);
   };
 
- 
-    return (
+     return (
       <div className={css.app}>
         <Searchbar onSubmit={onSubmit} />
         {images.length !== 0 && (
